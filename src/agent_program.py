@@ -8,7 +8,7 @@ load_dotenv(find_dotenv())
 user_agent_list = os.getenv('USER_AGENTS').split('\n')
 
 def user_agent_switcher():
-    """Generoi vaihtuvan User-Agentin jokaiselle kutsulle."""
+    """Generator function to switch between user agents"""
     if len(user_agent_list) == 0:
         raise Exception('No user agents found')
 
