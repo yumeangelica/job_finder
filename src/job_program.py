@@ -3,68 +3,83 @@ from bs4 import BeautifulSoup
 import requests
 import time
 
-
+def clean_text(text: str) -> str:
+    """Remove unwanted characters from text."""
+    if text:
+        return text.replace('–', '').strip()
+    return text
 
 def finder(search_term: str, area: str, type_of_work: str):
-
+    """Find jobs from job board"""
     base_url = f'https://duunitori.fi/tyopaikat?haku={search_term}&alue={area}&filter_work_type={type_of_work}&order_by=date_posted'
     jobs_data = []
-    time_for_sleep = 1 # time to sleep between requests. You can change this to whatever you want with caution
-    user_agent_generator = user_agent_switcher()
+    time_for_sleep = 5
+    max_retries = 3
+    user_agent_generator = user_agent_switcher() # Initialize user agent generator
 
     try:
         session = requests.Session()
+        session.headers.update({ # Set headers
+            'User-Agent': next(user_agent_generator),
+            'Referer': 'https://duunitori.fi',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Connection': 'keep-alive',
+        })
 
-        session.headers.update({'User-Agent': next(user_agent_generator)})
+        response = session.get(base_url, timeout=10)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser') # Parse the HTML
 
-        response = session.get(base_url, timeout=10) # timeout after 10 seconds if the request takes too long
+        pagination = soup.find_all('a', class_='pagination__pagenum') # Find the pagination element
+        last_page = int(pagination[-1].text.strip()) if pagination else 1 # Get the last page number
 
-        if not response.ok:
-            raise Exception(f'An error occurred: {response.status_code}')
+        for page in range(1, last_page + 1): # Loop through the pages
+            page_url = f"{base_url}&sivu={page}"
+            retries = 0
 
-        
-        soup = BeautifulSoup(response.text, 'lxml')
-        page_numbers = soup.find_all('a', class_='pagination__pagenum')
+            while retries < max_retries:
+                try:
+                    session.headers.update({'User-Agent': next(user_agent_generator)}) # Update the user agent for each request
+                    response = session.get(page_url, timeout=10)
+                    response.raise_for_status()
 
-        if len(page_numbers) == 0:
-            return jobs_data # return an empty list if there are no jobs
-        
-        time.sleep(time_for_sleep) # sleep amount of time_for_sleep -variable seconds, so we don't spam the website
+                    soup = BeautifulSoup(response.text, 'html.parser') # Parse the HTML
+                    jobs = soup.find_all('div', class_='job-box') # Find the job boxes on the page
 
-        
-        last_page_num = int(page_numbers[-1].text.strip())
+                    if not jobs:
+                        print(f"No jobs found on page {page}. Ending search.")
+                        return jobs_data
 
-        for page in range(1, last_page_num + 1):
+                    for job in jobs: # Loop through the job boxes
+                        try:
+                            link_elem = job.find('a', class_='job-box__hover')
+                            title_elem = job.find('h3', class_='job-box__title')
+                            company_elem = job.find('span', class_='job-box__job-location')
 
-            session.headers.update({'User-Agent': next(user_agent_generator)}) # update the user agent for each request
+                            title = clean_text(title_elem.text) if title_elem else None
+                            company = clean_text(company_elem.text) if company_elem else None
+                            url = f"https://duunitori.fi{link_elem['href']}" if link_elem and 'href' in link_elem.attrs else None
 
-            page_url = f'{base_url}&sivu={page}'
-            response = session.get(page_url, timeout=10)
-            soup_parsed = BeautifulSoup(response.text, 'lxml')
+                            if title and company and url:
+                                jobs_data.append([title, company, url])
 
-            jobs_found_in_page = soup_parsed.find_all('a', class_='job-box__hover gtm-search-result')
+                        except Exception as e:
+                            print(f"Error extracting job data: {e}")
+                            continue
 
-            for job in jobs_found_in_page:
-                company = job.get('data-company')
-                title = job.text.strip()
-                link = 'https://duunitori.fi' + job.get('href')
-                jobs_data.append([title, company, link])
+                    print(f"Page {page} processed successfully.")
+                    break
 
-            print(f'Page {page} searched')
-            time.sleep(time_for_sleep) # sleep amount of time_for_sleep -variable seconds, so we don't spam the website
+                except requests.exceptions.RequestException as e:
+                    print(f"Error on page {page}: {e}")
+                    retries += 1
+                    if retries == max_retries:
+                        print(f"Max retries reached for page {page}. Skipping.")
 
-        return jobs_data
+            time.sleep(time_for_sleep)
+
+        return jobs_data # Return the list of jobs
 
     except Exception as e:
-        print(f'An error occurred: {e}')
-
-
-
-
-
-
-
-
-
-
-
+        print(f"An unexpected error occurred: {e}")
+        return []
