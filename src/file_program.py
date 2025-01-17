@@ -1,7 +1,7 @@
 import csv
 
 def writer(data: list, path_to_job_folder: str, filename: str):
-    
+
     with open(path_to_job_folder + filename, 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(['Title', 'Company', 'Link'])
@@ -19,8 +19,8 @@ def reader(path_to_job_folder: str, filename: str):
             print(', '.join(row))
             job_count += 1
 
-    job_count -= 1 # subtract the header row
+    job_count -= 1 # Subtract the header row
 
-    print(f'Total jobs available: {job_count}') # print the total number of jobs
+    print(f'Total jobs available: {job_count}') # Print the total number of jobs
     print()
 
