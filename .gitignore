@@ -5,3 +5,6 @@ __pycache__/
 csv_files/
 
 .DS_Store
+
+/venv
+agents.txt
