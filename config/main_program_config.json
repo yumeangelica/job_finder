@@ -1,0 +1,20 @@
+{
+  "_config_version": "2.0",
+
+  "output_dir": "src/csv_files",
+  "agents_file": "config/agents.txt",
+
+  "filename_template": "{date}_{area}_{work_type}_{search_term}_jobs.csv",
+
+  "defaults": {
+    "area": "pääkaupunkiseutu",
+    "work_type": "full_time"
+  },
+
+  "work_types": {
+    "1": "full_time",
+    "2": "part_time"
+  },
+
+  "csv_headers": ["Title", "Company", "Link"]
+}

@@ -1,3 +1,2 @@
-beautifulsoup4==4.12.2  # For parsing HTML and XML documents
-python-dotenv==1.0.0  # To load environment variables from a .env file
-requests==2.31.0       # For making HTTP requests
+beautifulsoup4==4.12.2  # HTML parsing
+requests==2.31.0       # HTTP requests
