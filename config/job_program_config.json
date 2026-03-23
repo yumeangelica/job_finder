@@ -1,0 +1,88 @@
+{
+  "_config_version": "2.0",
+  "_last_verified": "2026-03-23",
+  "_notes": "When duunitori changes its HTML structure, update the selectors and last_verified date.",
+
+  "base_url": "https://duunitori.fi/tyopaikat",
+  "job_url_prefix": "https://duunitori.fi",
+
+  "query_params": {
+    "search": "haku",
+    "area": "alue",
+    "work_type": "filter_work_type",
+    "order_by": "order_by",
+    "page": "sivu"
+  },
+
+  "defaults": {
+    "order_by": "date_posted"
+  },
+
+  "headers": {
+    "Referer": "https://duunitori.fi",
+    "Accept-Language": "fi-FI,fi;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Connection": "keep-alive"
+  },
+
+  "request": {
+    "timeout": 10,
+    "sleep_seconds": 5,
+    "max_retries": 3,
+    "max_pages": 50,
+    "retry_status_codes": [429, 500, 502, 503, 504]
+  },
+
+  "parser": "html.parser",
+
+  "selectors": {
+    "job_container": {
+      "primary": { "tag": "div", "class": "job-box" },
+      "fallbacks": [
+        { "tag": "article", "class": "job-box" },
+        { "tag": "div", "attrs": { "data-job-id": true } },
+        { "tag": "div", "class": "job-card" },
+        { "tag": "div", "class": "job-listing" }
+      ]
+    },
+    "title": {
+      "primary": { "tag": "h3", "class": "job-box__title" },
+      "fallbacks": [
+        { "tag": "h2", "class": "job-box__title" },
+        { "tag": "h3", "class": "job-card__title" },
+        { "tag": "[data-test]", "attrs": { "data-test": "job-title" } }
+      ]
+    },
+    "company": {
+      "primary": { "tag": "span", "class": "job-box__job-location" },
+      "fallbacks": [
+        { "tag": "span", "class": "job-box__company" },
+        { "tag": "div", "class": "job-box__job-location" },
+        { "tag": "span", "class": "job-card__company" }
+      ]
+    },
+    "link": {
+      "primary": { "tag": "a", "class": "job-box__hover" },
+      "fallbacks": [
+        { "tag": "a", "class": "job-box__link" },
+        { "tag": "a", "class": "job-card__link" }
+      ],
+      "attr": "href"
+    },
+    "pagination": {
+      "primary": { "tag": "a", "class": "pagination__pagenum" },
+      "fallbacks": [
+        { "tag": "a", "class": "pagination__page" },
+        { "tag": "li", "class": "pagination__item" }
+      ]
+    }
+  },
+
+  "validation": {
+    "expected_page_markers": ["duunitori", "työpaikat", "tyopaikat"],
+    "block_markers": ["captcha", "tarkistus", "robot", "blocked", "denied"],
+    "cookie_markers": ["eväste", "cookie", "consent"],
+    "min_page_length": 1000,
+    "min_jobs_first_page": 1
+  }
+}
