@@ -1,2 +1,2 @@
-beautifulsoup4==4.12.2  # HTML parsing
-requests==2.31.0       # HTTP requests
+beautifulsoup4==4.14.3  # HTML parsing
+requests==2.32.5       # HTTP requests (CVE-2024-47081 fix)
